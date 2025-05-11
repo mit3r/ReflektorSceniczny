@@ -1,0 +1,18 @@
+Reflektor sceniczny
+
+Ogólne
+
+- ruch w 2 osiach (obrót, pochylenie)
+- świeci światłem ciągłym / błyskowym / fade
+- kolor światła osobno białe / osobno RGB
+- predefiniowane tryby wybierane za pomocą przełączników / pokręteł
+
+Opcja 1 (ESP8266)
+- sterowanie za pomocą aplikacji internetowej udostępnianej w sieci lokalnej mikroprocesora
+
+Opcja 2 (Arduino nano)
+- możliwość sterowania za pomocą kontrolera podłączonego po kablu
+
+
+Bonusowe
+- regulowana ogniskowa (rozpraszanie i skupianie promienia świetlnego)
