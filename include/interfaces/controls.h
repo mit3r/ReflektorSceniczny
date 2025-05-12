@@ -1,6 +1,6 @@
 #include <Ticker.h>
 
-#include "pinout.h"
+#include "config/pinout.h"
 
 #ifndef CONTROLS_H
 #define CONTROLS_H

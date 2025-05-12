@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Ticker.h>
 
-#include "pinout.h"
+#include "config/pinout.h"
 #include "utils.h"
 
 #ifndef LIGHTS_H

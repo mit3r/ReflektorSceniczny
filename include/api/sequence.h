@@ -1,6 +1,7 @@
-#include "lights.h"
-#include "movement.h"
-#include "pinout.h"
+#include "config/pinout.h"
+#include "interfaces/controls.h"
+#include "interfaces/lights.h"
+#include "interfaces/movement.h"
 #include "utils.h"
 #include "vector"
 

@@ -2,18 +2,16 @@
 
 #include <Arduino.h>
 #include <Ticker.h>
-#include <lights.h>
 
-#include "controls.h"
-#include "movement.h"
-#include "network.h"
-#include "pinout.h"
-//
-#include "states/states.h"
-//
-#include "states/_monilith.h"
-#include "states/_puppeteur.h"
-#include "states/_scene.h"
+#include "api/network.h"
+#include "api/sequence.h"
+#include "api/states.h"
+#include "interfaces/controls.h"
+#include "interfaces/lights.h"
+#include "interfaces/movement.h"
+#include "states/monilith.h"
+#include "states/puppeteur.h"
+#include "states/scene.h"
 
 unsigned short av = 0;
 int s = 0;
@@ -31,7 +29,7 @@ void setup() {
 
   Serial.println("Press buttons to navigate through the states");
 
-  State::states = new StateNode[3];
+  State::states = new State::Node[3];
   State::states[0] = sceneState;
   State::states[1] = monilithState;
   State::states[2] = puppeteurState;

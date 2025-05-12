@@ -1,6 +1,6 @@
-#include "network.h"
+#include "api/network.h"
 
-#include "sequence.h"
+#include "api/sequence.h"
 
 AsyncWebServer server(80);
 

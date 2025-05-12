@@ -1,4 +1,4 @@
-#include "lights.h"
+#include "interfaces/lights.h"
 
 static float maxBrightness = 1.0;  // Maximum brightness for the LEDs (0.0 to 1.0)
 static Color current = {0, 0, 0};

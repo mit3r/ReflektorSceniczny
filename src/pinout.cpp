@@ -1,4 +1,4 @@
-#include "pinout.h"
+#include "config/pinout.h"
 
 namespace Pins {
 

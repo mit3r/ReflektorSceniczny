@@ -1,18 +1,19 @@
 #include <Arduino.h>
 
-#include "chooser.h"
-#include "controls.h"
-#include "predefined.h"
-#include "sequence.h"
-#include "states/node.h"
-#include "states/states.h"
+#include "api/chooser.h"
+#include "api/sequence.h"
+#include "api/states.h"
+#include "config/scenes.h"
+#include "interfaces/controls.h"
+#include "interfaces/lights.h"
+#include "interfaces/movement.h"
 
 #ifndef MONOLITH_STATE
 #define MONOLITH_STATE
 
 Chooser mParams(5, 0);
 
-StateNode monilithState = {
+State::Node monilithState = {
     .setupFunction = []() {
   Controls::onHold(0, []() { State::setState(0); });  // Go to scene
   Controls::onHold(1, []() { State::setState(2); });  // Go to puppeteur

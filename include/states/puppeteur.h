@@ -1,17 +1,16 @@
 #include <Arduino.h>
 
-#include "chooser.h"
-#include "controls.h"
-#include "sequence.h"
-#include "states/node.h"
-#include "states/states.h"
+#include "api/chooser.h"
+#include "api/sequence.h"
+#include "api/states.h"
+#include "interfaces/controls.h"
 
 #ifndef PUPPETEUR_STATE
 #define PUPPETEUR_STATE
 
 Chooser pParams(5, 0);
 
-StateNode puppeteurState = {
+State::Node puppeteurState = {
     .setupFunction = []() {
   Controls::unlockAnalog();
   customBlueSeq->clear();  // Clear the sequence

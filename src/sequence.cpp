@@ -1,4 +1,4 @@
-#include "sequence.h"
+#include "api/sequence.h"
 
 static Sequence* seq = nullptr;          // Pointer to the current sequence
 static unsigned short currentFrame = 0;  // Current frame index

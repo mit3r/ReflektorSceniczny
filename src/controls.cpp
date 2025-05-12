@@ -1,4 +1,4 @@
-#include "controls.h"
+#include "interfaces/controls.h"
 
 static Button buttons[] = {
     {Pins::BUTTON0, 0, 250, false, false, nullptr, nullptr},

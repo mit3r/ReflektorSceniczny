@@ -1,13 +1,16 @@
-#include <Ticker.h>
-
-#include "states/node.h"
+#include "Ticker.h"
 
 #ifndef STATES_H
 #define STATES_H
 
 namespace State {
 
-StateNode *states;
+struct Node {
+  void (*setupFunction)();
+  void (*handleFunction)();
+};
+
+Node *states;
 
 static int currentState;
 static int statesCount;
