@@ -79,8 +79,20 @@ const bool Movement::isMoving() {
   return moving;
 }
 
-const Point Movement::getTargetPosition() {
+const Point Movement::getTargetStepsPosition() {
   return Point{tx, ty};
+}
+
+const Point Movement::getCurrentStepsPosition() {
+  return Point{x, y};
+}
+
+const Point Movement::getTargetAnglePosition() {
+  return Point{(float)tx * 360.f / (1.4 * stepsPer360), (float)ty * 360.f / stepsPer360};
+}
+
+const Point Movement::getCurrentAnglePosition() {
+  return Point{(float)x * 360.f / (1.4f * stepsPer360), (float)y * 360.f / stepsPer360};
 }
 
 void Movement::stop() {

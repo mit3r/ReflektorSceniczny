@@ -16,13 +16,12 @@ struct Item {
 
 static bool looping = false;
 static unsigned char choose = 0;
-static const unsigned char length = 4;
+static const unsigned char length = 3;
 
 static Item items[length] = {
-    {Color{255, 0, 0}, predef1red},       // Red
-    {Color{0, 255, 0}, predef2green},     // Green
-    {Color{255, 0, 255}, predef3violet},  // Violet
-    {Color{0, 0, 255}, predef4blue},      // Blue
+    {Color{255, 0, 0}, predefinedRedSeq},    // Red
+    {Color{0, 255, 0}, predefinedGreenSeq},  // Green
+    {Color{0, 0, 255}, customBlueSeq},       // Blue
 };
 
 StateNode sceneState = {
@@ -35,12 +34,12 @@ StateNode sceneState = {
     if (Sequence::isRunning()) {
       looping = false;
       Sequence::stop();
+      Serial.printf("Stopping scene: %d\n", choose);
     } else {
       looping = true;
       items[choose].sequence->run();
+      Serial.printf("Running scene: %d\n", choose);
     }
-
-    Serial.printf("Running scene: %d\n", choose);
   });
 
   Controls::onPressed(0, []() {

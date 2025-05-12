@@ -14,12 +14,13 @@ Chooser pParams(5, 0);
 StateNode puppeteurState = {
     .setupFunction = []() {
   Controls::unlockAnalog();
-  predef4blue->clear();  // Clear the sequence
+  customBlueSeq->clear();  // Clear the sequence
 
   Controls::onHold(0, []() {  // Add frame to sequence
-    predef4blue->add(Lights::getTargetColor(), Movement::getTargetPosition());
-    auto f = predef4blue->getSize();
+    customBlueSeq->add(Lights::getTargetColor(), Movement::getTargetAnglePosition());
+    auto f = customBlueSeq->getSize();
     Serial.printf("Added frame %d to sequence\n", f);
+    blinkBlue->run();
     if (f >= Sequence::maxFrames) State::setState(1);
   });
 
@@ -34,7 +35,7 @@ StateNode puppeteurState = {
   });
 
   Controls::onPressed(1, []() {
-    Controls::unlockAnalog();
+    Controls::lockAnalog();
     pParams.nextChoice();
     Serial.printf("Adjusting parameter: %d\n", pParams.current());
   });
@@ -55,13 +56,13 @@ StateNode puppeteurState = {
       Movement::moveTilt(map(analog, 0, 255, -90, 90));
       break;
     case 2:
-      Lights::setRedTo(map(analog, 0, 255, 0, 255));
+      Lights::setRedTo(analog);
       break;
     case 3:
-      Lights::setGreen(map(analog, 0, 255, 0, 255));
+      Lights::setGreen(analog);
       break;
     case 4:
-      Lights::setBlue(map(analog, 0, 255, 0, 255));
+      Lights::setBlue(analog);
       break;
     }
   }

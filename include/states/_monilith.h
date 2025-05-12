@@ -26,10 +26,10 @@ StateNode monilithState = {
   Controls::onPressed(1, []() {
     Controls::lockAnalog();
     mParams.nextChoice();
-    // param = param + 1 > maxParam ? 0 : param + 1;
     Serial.printf("Adjusting parameter: %d\n", mParams.current());
   });
 
+  Movement::moveTo(0, 0, true);
   blinkWhite->run();
   Serial.printf("< %-9s >\n", "Monolith");
 },

@@ -33,14 +33,17 @@ class Movement {
   // @return: `true` if the movement was ordered, `false` if the motors are already moving
   // @note: The target angles are clamped to the limits defined by `panMax`, `panMin`, `tiltMax`, and `tiltMin`.
   static void moveTo(short targetAngleX, short targetAngleY, bool immediate = false);
-
   static void movePan(short targetAngleX, bool immediate = true);
   static void moveTilt(short targetAngleY, bool immediate = true);
 
   // Returns the time needed to reach the target angles
   static unsigned long timeOf(short targetAngleX, short targetAngleY);
   static const bool isMoving();
-  static const Point getTargetPosition();
+
+  static const Point getTargetStepsPosition();
+  static const Point getTargetAnglePosition();
+  static const Point getCurrentStepsPosition();
+  static const Point getCurrentAnglePosition();
 
   static void stop();
 

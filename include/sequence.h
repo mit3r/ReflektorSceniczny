@@ -15,11 +15,10 @@ struct Frame {
 
 class Sequence {
   private:
-  std::vector<Frame> frames;
-
   static void handle();
 
   public:
+  std::vector<Frame> frames;
   static const unsigned char maxFrames = 24;  // Maximum number of frames in the sequence
   static void setup();
 

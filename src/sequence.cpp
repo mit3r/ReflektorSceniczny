@@ -19,6 +19,7 @@ void Sequence::handle() {
   // Update the current frame
   currentDelay = max(Movement::timeOf(seq->frames[currentFrame].point.x, seq->frames[currentFrame].point.y),
                      seq->frames[currentFrame].duration);
+
   Movement::moveTo(seq->frames[currentFrame].point.x, seq->frames[currentFrame].point.y, true);
   Lights::fadeTo(seq->frames[currentFrame].color, currentDelay);
 
@@ -39,6 +40,7 @@ void Sequence::add(struct Color color, struct Point point) {
   Frame f;
   f.color = color;
   f.point = point;
+  f.duration = 0;
   frames.push_back(f);
 }
 
@@ -63,6 +65,7 @@ void Sequence::stop() {
 void Sequence::run() {
   if (seq) return;
 
+  currentFrame = 0;      // Reset the current frame index
   seq = this;            // Set the current sequence
   startTime = millis();  // Record the start time
 }
