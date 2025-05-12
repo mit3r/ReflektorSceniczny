@@ -1,55 +1,29 @@
-#include "Ticker.h"
+#include <Ticker.h>
 
 #ifndef STATES_H
 #define STATES_H
 
-namespace State {
-
-struct Node {
-  void (*setupFunction)();
-  void (*handleFunction)();
+struct State {
+  void (*setup)();
+  void (*handle)();
+  void (*cleanup)();
 };
 
-Node *states;
+class StateManager {
+  private:
+  static State *states;
+  static int currentState;
+  static int countStates;
 
-static int currentState;
-static int statesCount;
+  public:
+  static void setup(State *states, int countStates, int currentState = 0);
 
-void setup(int statesCount, int currentState) {  // Initialize the states array
+  static unsigned short index();
+  static State state();
 
-  State::statesCount = statesCount;
-  State::currentState = currentState;
+  static void nextState();
+  static void prevState();
+  static void setState(char state);
+};
 
-  states[currentState].setupFunction();
-
-  static Ticker ticker;
-  ticker.attach_ms(11, []() { states[State::currentState].handleFunction(); });
-}
-
-unsigned short current() { return currentState; }
-
-void nextState() {
-  if (currentState + 1 >= statesCount)
-    currentState = 0;
-  else
-    currentState++;
-
-  if (states[currentState].setupFunction) states[currentState].setupFunction();
-}
-
-void prevState() {
-  if (currentState - 1 < 0)
-    currentState = statesCount - 1;
-  else
-    currentState--;
-  if (states[currentState].setupFunction) states[currentState].setupFunction();
-}
-
-void setState(char state) {
-  if (state < 0 || state >= statesCount) return;
-  currentState = state;
-  if (states[currentState].setupFunction) states[currentState].setupFunction();
-}
-
-}  // namespace State
 #endif

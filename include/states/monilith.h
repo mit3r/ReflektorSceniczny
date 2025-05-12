@@ -11,35 +11,37 @@
 #ifndef MONOLITH_STATE
 #define MONOLITH_STATE
 
-Chooser mParams(5, 0);
-
-State::Node monilithState = {
-    .setupFunction = []() {
-  Controls::onHold(0, []() { State::setState(0); });  // Go to scene
-  Controls::onHold(1, []() { State::setState(2); });  // Go to puppeteur
+namespace MonolithState {
+void setup() {
+  Controls::onHold(0, []() {
+    Serial.printf("Going to scene\n");
+    StateManager::setState(0);
+    Serial.printf("Scene state set\n");
+  });                                                        // Go to scene
+  Controls::onHold(1, []() { StateManager::setState(2); });  // Go to puppeteur
 
   Controls::onPressed(0, []() {
     Controls::lockAnalog();
-    mParams.previousChoice();
-    Serial.printf("Adjusting parameter: %d\n", mParams.current());
+    chooser.previousChoice();
+    Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
   Controls::onPressed(1, []() {
     Controls::lockAnalog();
-    mParams.nextChoice();
-    Serial.printf("Adjusting parameter: %d\n", mParams.current());
+    chooser.nextChoice();
+    Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
   Movement::moveTo(0, 0, true);
   blinkWhite->run();
   Serial.printf("< %-9s >\n", "Monolith");
-},
+}
 
-    .handleFunction = []() {
+void handle() {
   unsigned char analog = Controls::getFilteredAnalog();
 
   if (!Controls::tryUnlockAnalog()) {
-    switch (mParams.current()) {
+    switch (chooser.current()) {
     case 0:
       Movement::movePan(map(analog, 0, 255, -90, 90));
       break;
@@ -57,6 +59,17 @@ State::Node monilithState = {
       break;
     }
   }
-}};
+}
+
+void cleanup() {
+}
+
+State state = {
+    .setup = setup,
+    .handle = handle,
+    .cleanup = cleanup,
+};
+
+};  // namespace MonolithState
 
 #endif

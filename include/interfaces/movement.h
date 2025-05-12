@@ -8,19 +8,24 @@
 #ifndef MOVEMENT_H
 #define MOVEMENT_H
 
-typedef unsigned short ushort;
-
-const ushort stepsPer360 = 2037;  // 2037.5;  //
-const ushort minStepDelay = 2;    // 4ms delay between steps
-const ushort maxStepDelay = 100;  // 100ms delay between steps
-
-const short panMax = 180;
-const short panMin = -180;
-
-const short tiltMax = 90;
-const short tiltMin = -90;
-
 class Movement {
+  private:
+  const static unsigned short stepsPer360 = 2037.5;  // 2037.5;  //
+  const static unsigned short minStepDelay = 2;      // 4ms delay between steps
+  const static unsigned short maxStepDelay = 100;    // 100ms delay between steps
+  const static short panMax = 180;
+  const static short panMin = -180;
+  const static short tiltMax = 90;
+  const static short tiltMin = -90;
+
+  static short x;  // pan  axis [steps]
+  static short y;  // tilt axis [steps]
+
+  static short tx;  // target pan axis [steps]
+  static short ty;  // target tilt axis [steps]
+
+  static bool moving;
+
   public:
   static void setup();
   // Handle the movement of the motors

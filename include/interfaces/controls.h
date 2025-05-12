@@ -7,9 +7,7 @@
 
 struct Button {
   unsigned int pin;
-
   unsigned long timer;
-
   unsigned long holdTime;
   bool pressActive;
   bool holdActive;
@@ -29,18 +27,17 @@ struct Analog {
   int maxValue;
 };
 
-static bool analogLock = false;                      // Flag for analog lock
-static const unsigned char analogLockThreshold = 5;  // Threshold for analog lock
-static const float analogFilter = 0.1;               // Analog filter value (0.0 to 1.0)
-
 class Controls {
+  private:
+  const static float analogFilter;                 // Analog filter value (0.0 to 1.0)
+  static const unsigned char analogLockThreshold;  // Threshold for analog lock
+  static bool analogLock;                          // Flag for analog lock
+
   public:
   static void setup();
-
   static void handle();
 
   static void onPressed(int index, void (*callback)());
-
   static void onHold(int index, void (*callback)());
 
   // Analog value mapped to [0, 255]

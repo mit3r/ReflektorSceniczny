@@ -5,8 +5,10 @@
 #include "config/scenes.h"
 #include "interfaces/controls.h"
 
-#ifndef SEQUENCE_STATE
-#define SEQUENCE_STATE
+#ifndef SCENE_STATE
+#define SCENE_STATE
+
+namespace SceneState {
 
 struct Item {
   Color identifier;
@@ -23,10 +25,9 @@ static Item items[length] = {
     {Color{0, 0, 255}, customBlueSeq},       // Blue
 };
 
-State::Node sceneState = {
-    .setupFunction = []() {
+void setup() {
   Controls::onHold(0, []() {
-    State::setState(1);
+    StateManager::setState(1);
   });
 
   Controls::onHold(1, []() {
@@ -54,9 +55,9 @@ State::Node sceneState = {
   blinkYellow->run();
   Serial.printf("< %-9s >\n", "Scene");
   Lights::fadeTo(items[choose].identifier, 0);
-},
+}
 
-    .handleFunction = []() {
+void handle() {
   if (!Sequence::isRunning()) {
     if (looping)
       items[choose].sequence->run();
@@ -65,6 +66,16 @@ State::Node sceneState = {
     Movement::moveTo(0, 0);
   }
   // Handle the sequence state
-}};
+}
+
+void cleanup() {}
+
+State state = {
+    .setup = setup,
+    .handle = handle,
+    .cleanup = cleanup,
+};
+
+}  // namespace SceneState
 
 #endif

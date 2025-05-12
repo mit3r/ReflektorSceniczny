@@ -3,15 +3,16 @@
 #include "api/chooser.h"
 #include "api/sequence.h"
 #include "api/states.h"
+#include "config/scenes.h"
 #include "interfaces/controls.h"
 
 #ifndef PUPPETEUR_STATE
 #define PUPPETEUR_STATE
 
-Chooser pParams(5, 0);
+namespace PuppeteurState {
+void setup() {
+  Serial.printf("Puppeteur setup\n");
 
-State::Node puppeteurState = {
-    .setupFunction = []() {
   Controls::unlockAnalog();
   customBlueSeq->clear();  // Clear the sequence
 
@@ -20,34 +21,34 @@ State::Node puppeteurState = {
     auto f = customBlueSeq->getSize();
     Serial.printf("Added frame %d to sequence\n", f);
     blinkBlue->run();
-    if (f >= Sequence::maxFrames) State::setState(1);
+    if (f >= Sequence::maxFrames) StateManager::setState(1);
   });
 
   Controls::onHold(1, []() {  // Go to monilith
-    State::setState(1);
+    StateManager::setState(1);
   });
 
   Controls::onPressed(0, []() {
     Controls::lockAnalog();
-    pParams.previousChoice();
-    Serial.printf("Adjusting parameter: %d\n", pParams.current());
+    chooser.previousChoice();
+    Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
   Controls::onPressed(1, []() {
     Controls::lockAnalog();
-    pParams.nextChoice();
-    Serial.printf("Adjusting parameter: %d\n", pParams.current());
+    chooser.nextChoice();
+    Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
   blinkBlue->run();
   Serial.printf("< %-9s >\n", "Puppeteur");
-},
+}
 
-    .handleFunction = []() {
+void handle() {
   unsigned char analog = Controls::getFilteredAnalog();
 
   if (!Controls::tryUnlockAnalog()) {
-    switch (pParams.current()) {
+    switch (chooser.current()) {
     case 0:
       Movement::movePan(map(analog, 0, 255, -90, 90));
       break;
@@ -65,6 +66,16 @@ State::Node puppeteurState = {
       break;
     }
   }
-}};
+}
+
+void cleanup() {}
+
+State state = {
+    .setup = setup,
+    .handle = handle,
+    .cleanup = cleanup,
+};
+
+}  // namespace PuppeteurState
 
 #endif

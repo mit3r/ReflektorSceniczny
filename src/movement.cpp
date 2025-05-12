@@ -1,14 +1,12 @@
 #include "interfaces/movement.h"
 
-unsigned int now = millis();
+static unsigned int now = millis();
 
-static short x = 0;  // pan  axis [steps]
-static short y = 0;  // tilt axis [steps]
-
-static short tx = 0;  // target pan axis [steps]
-static short ty = 0;  // target tilt axis [steps]
-
-static bool moving = false;
+short Movement::x = 0;   // pan  axis [steps]
+short Movement::y = 0;   // tilt axis [steps]
+short Movement::tx = 0;  // target pan axis [steps]
+short Movement::ty = 0;  // target tilt axis [steps]
+bool Movement::moving = false;
 
 void Movement::setup() {
   static Ticker ticker;
@@ -88,11 +86,11 @@ const Point Movement::getCurrentStepsPosition() {
 }
 
 const Point Movement::getTargetAnglePosition() {
-  return Point{(float)tx * 360.f / (1.4 * stepsPer360), (float)ty * 360.f / stepsPer360};
+  return Point{(short)((float)tx * 360.f / stepsPer360), (short)((float)ty * 360.f / stepsPer360)};
 }
 
 const Point Movement::getCurrentAnglePosition() {
-  return Point{(float)x * 360.f / (1.4f * stepsPer360), (float)y * 360.f / stepsPer360};
+  return Point{(short)((float)x * 360.f / stepsPer360), (short)((float)y * 360.f / stepsPer360)};
 }
 
 void Movement::stop() {

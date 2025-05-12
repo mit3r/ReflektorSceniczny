@@ -1,11 +1,15 @@
 #include "interfaces/controls.h"
 
-static Button buttons[] = {
+const float Controls::analogFilter = 0.1;               // Analog filter value (0.0 to 1.0)
+const unsigned char Controls::analogLockThreshold = 5;  // Threshold for analog lock
+
+static Button buttons[2] = {
     {Pins::BUTTON0, 0, 250, false, false, nullptr, nullptr},
     {Pins::BUTTON1, 0, 250, false, false, nullptr, nullptr},
 };
 
 static Analog analog = {Pins::ANALOG, 0, 0, 0, 0, 1023};
+bool Controls::analogLock = false;  // Flag for analog lock
 
 void Controls::setup() {
   static Ticker ticker;

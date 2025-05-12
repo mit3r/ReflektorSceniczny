@@ -1,57 +1,68 @@
 #include "api/network.h"
 
-#include "api/sequence.h"
+#include <api/states.h>
 
-AsyncWebServer server(80);
+#include "LittleFS.h"
+#include "api/sequence.h"
+#include "config/scenes.h"
+
+AsyncWebServer Network::server(80);
+DNSServer Network::dnsServer;
 
 void Network::setup() {
-  // WiFi.mode(WIFI_STA);
-  // WiFi.begin(Network::ssid, Network::password);
-  // Serial.println("Connecting to WiFi...");
+  WiFi.softAP(Network::ssid, Network::password);
+  WiFi.softAPConfig(IPAddress(192, 168, 0, 1), IPAddress(192, 168, 0, 1), IPAddress(255, 255, 255, 0));
+  Serial.println("Created access point");
 
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(1000);
-  //   Serial.print(".");
-  // }
-  // Serial.println();
-  // Serial.println("Connected to WiFi: ");
-  // Serial.print("SSID: ");
-  // Serial.println(WiFi.SSID());
-  // Serial.print("IP address: ");
-  // Serial.println(WiFi.localIP());
-  // Serial.print("Signal strength: ");
-  // Serial.println(WiFi.RSSI());
+  dnsServer.start(53, "*", WiFi.softAPIP());
+  Serial.println("DNS server started");
 
-  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   request->send(200, "text/plain", "Hello from ESP8266!");
-  // });
+  if (!LittleFS.begin()) {
+    Serial.println("Failed to mount file system");
+    return;
+  }
 
-  // server.on("/set/position", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   String x = request->getParam("x")->value();
-  //   String y = request->getParam("y")->value();
-  //   Serial.printf("Setting position: x=%s, y=%s\n", x.c_str(), y.c_str());
-  //   request->send(200, "text/plain", "Position set");
-  // });
-
-  // server.begin();
-  Sequence *seq = new Sequence(std::vector<Frame>{
-      {Color{100, 0, 0}, Point{0, 0}, 600},
-      {Color{100, 0, 0}, Point{0, 0}, 0},
-      {Color{0, 0, 0}, Point{0, 0}, 200},
-      {Color{0, 0, 0}, Point{0, 0}, 0},
-      {Color{0, 100, 0}, Point{0, 0}, 600},
-      {Color{0, 100, 0}, Point{0, 0}, 0},
-      {Color{0, 0, 0}, Point{0, 0}, 200},
-      {Color{0, 0, 0}, Point{0, 0}, 0},
-      {Color{0, 0, 100}, Point{0, 0}, 600},
-      {Color{0, 0, 100}, Point{0, 0}, 0},
-      {Color{0, 0, 0}, Point{0, 0}, 0},
-
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    File file = LittleFS.open("/index.html", "r");
+    if (!file) {
+      request->send(500, "text/plain", "Internal Server Error");
+      return;
+    }
+    String content = file.readString();
+    file.close();
+    request->send(200, "text/html", content);
   });
 
-  seq->run();
-}
+  server.on("/set/position", HTTP_GET, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("ax") && request->hasParam("ay")) {
+      int x = request->getParam("ax")->value().toInt();
+      int y = request->getParam("ay")->value().toInt();
+      if (StateManager::index() == 1)  // Monolith
+        Movement::moveTo(x, y, true);
 
-void Network::handle() {
-  // delay(10);  // Avoid blocking
-}
+      request->send(200, "text/plain", "Position set wireless");
+      Serial.printf("Position set wireless (%d, %d)\n", x, y);
+    } else {
+      request->send(400, "text/plain", "Missing parameters");
+    }
+  });
+
+  server.on("/set/light", HTTP_GET, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("r") && request->hasParam("g") && request->hasParam("b")) {
+      Color color;
+      color.r = request->getParam("r")->value().toInt();
+      color.g = request->getParam("g")->value().toInt();
+      color.b = request->getParam("b")->value().toInt();
+      if (StateManager::index() == 1)  // Monolith
+        Lights::fadeTo(color);
+
+      request->send(200, "text/plain", "Light set wireless");
+      Serial.printf("Light set wireless (%d, %d, %d)\n", color.r, color.g, color.b);
+    } else {
+      request->send(400, "text/plain", "Missing parameters");
+    }
+  });
+
+  server.begin();
+  blinkWhite->run();
+};
