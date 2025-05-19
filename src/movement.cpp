@@ -2,112 +2,114 @@
 
 static unsigned int now = millis();
 
-short Movement::x = 0;   // pan  axis [steps]
-short Movement::y = 0;   // tilt axis [steps]
-short Movement::tx = 0;  // target pan axis [steps]
-short Movement::ty = 0;  // target tilt axis [steps]
-bool Movement::moving = false;
+Point Movement::distanceSteps = {0, 0};         // distance to target in [steps]
+Point Movement::currentSteps = {0, 0};          // current position in [steps]
+Point Movement::targetSteps = {0, 0};           // target position in [steps]
+Point Movement::currentDistanceSteps = {0, 0};  // difference between target and current position in [steps]
 
 void Movement::setup() {
-  static Ticker ticker;
-  ticker.attach_ms(4, Movement::handle);
+  static Ticker tickerPan;
+  tickerPan.attach_ms(2, Movement::stepPan);
+
+  static Ticker tickerTilt;
+  tickerTilt.attach_ms(2, Movement::stepTilt);
 }
 
-void Movement::stepPan(bool dir) {
-  x += dir ? 1 : -1;
-  digitalWrite(Pins::DIRECTION, dir ? HIGH : LOW);
-  digitalWrite(Pins::PAN_STEP, HIGH);
-  now = millis();
-  while (millis() - now < minStepDelay) {
-  }
+bool Movement::moveToAngle(Point angle) {
+  if (isMoving()) return false;
 
-  digitalWrite(Pins::PAN_STEP, LOW);
-  now = millis();
-  while (millis() - now < minStepDelay) {
-  }
+  targetSteps.x = constrain(angle.x, minAngle.x, maxAngle.x) * stepsPer360 / 360;
+  targetSteps.y = constrain(angle.y, minAngle.y, maxAngle.y) * stepsPer360 / 360;
+
+  distanceSteps.x = targetSteps.x - currentSteps.x;
+  currentDistanceSteps.x = distanceSteps.x;
+
+  distanceSteps.y = targetSteps.y - currentSteps.y;
+  currentDistanceSteps.y = distanceSteps.y;
+
+  return true;
 }
 
-void Movement::stepTilt(bool dir) {
-  y += dir ? -1 : 1;
-  digitalWrite(Pins::DIRECTION, dir ? HIGH : LOW);
-  digitalWrite(Pins::TILT_STEP, HIGH);
+bool Movement::movePanToAngle(short angle) {
+  if (isMoving()) return false;  // If already moving, return false
+  targetSteps.x = constrain(angle, minAngle.x, maxAngle.x) * stepsPer360 / 360;
+  distanceSteps.x = targetSteps.x - currentSteps.x;
+  currentDistanceSteps.x = distanceSteps.x;
 
-  now = millis();
-  while (millis() - now < minStepDelay) {
-  }
-  digitalWrite(Pins::TILT_STEP, LOW);
-  now = millis();
-  while (millis() - now < minStepDelay) {
-  }
+  return true;
 }
+bool Movement::moveTiltToAngle(short angle) {
+  if (isMoving()) return false;  // If already moving, return false
+  targetSteps.y = constrain(angle, minAngle.y, maxAngle.y) * stepsPer360 / 360;
+  distanceSteps.y = targetSteps.y - currentSteps.y;
+  currentDistanceSteps.y = distanceSteps.y;
 
-void Movement::moveTo(short targetAngleX, short targetAngleY, bool immediate) {
-  if (moving && !immediate) return;
-
-  // Clamp and convert the target angles to steps
-  tx = constrain(targetAngleX, panMin, panMax) * 1.4 * stepsPer360 / 360;
-  ty = constrain(targetAngleY, tiltMin, tiltMax) * stepsPer360 / 360;
-  moving = true;
-}
-
-void Movement::movePan(short targetAngleX, bool immediate) {
-  if (moving && !immediate) return;
-
-  tx = constrain(targetAngleX, panMin, panMax) * 1.4 * stepsPer360 / 360;
-  moving = true;
-}
-
-void Movement::moveTilt(short targetAngleY, bool immediate) {
-  if (moving && !immediate) return;
-
-  ty = constrain(targetAngleY, tiltMin, tiltMax) * stepsPer360 / 360;
-  moving = true;
-}
-
-unsigned long Movement::timeOf(short targetAngleX, short targetAngleY) {
-  // Clamp and convert the target angles to steps
-  tx = constrain(targetAngleX, panMin, panMax) * 1.4 * stepsPer360 / 360;
-  ty = constrain(targetAngleY, tiltMin, tiltMax) * stepsPer360 / 360;
-
-  // Calculate the time needed to reach the target angles
-  return abs(tx - x) * minStepDelay + abs(ty - y) * minStepDelay;
+  return true;
 }
 
 const bool Movement::isMoving() {
-  return moving;
+  return currentDistanceSteps.x != 0 || currentDistanceSteps.y != 0;
 }
 
-const Point Movement::getTargetStepsPosition() {
-  return Point{tx, ty};
-}
+const unsigned char Movement::movingProgress() {
+  if (!isMoving()) return 255;
 
-const Point Movement::getCurrentStepsPosition() {
-  return Point{x, y};
-}
-
-const Point Movement::getTargetAnglePosition() {
-  return Point{(short)((float)tx * 360.f / stepsPer360), (short)((float)ty * 360.f / stepsPer360)};
-}
-
-const Point Movement::getCurrentAnglePosition() {
-  return Point{(short)((float)x * 360.f / stepsPer360), (short)((float)y * 360.f / stepsPer360)};
+  float progressX = distanceSteps.x != 0 ? 255 - abs(currentDistanceSteps.x * 255 / distanceSteps.x) : 255;
+  float progressY = distanceSteps.y != 0 ? 255 - abs(currentDistanceSteps.y * 255 / distanceSteps.y) : 255;
+  return (progressX + progressY) / 2;
 }
 
 void Movement::stop() {
-  ty = y;
-  tx = x;
-  moving = false;
+  targetSteps = currentSteps;
+  distanceSteps = {0, 0};
+  currentDistanceSteps = {0, 0};
 }
 
-void Movement::handle() {
-  short dx = tx - x;
-  if (dx != 0)
-    stepPan(dx > 0);
+const Point Movement::getTargetAngle() {
+  return {(short)(targetSteps.x * 360 / stepsPer360),
+          (short)(targetSteps.y * 360 / stepsPer360)};
+}
 
-  short dy = ty - y;
-  if (dy != 0)
-    stepTilt(dy < 0);
+const Point Movement::getCurrentAngle() {
+  return {(short)(currentSteps.x * 360 / stepsPer360),
+          (short)(currentSteps.y * 360 / stepsPer360)};
+}
 
-  if (dx == 0 && dy == 0)
-    moving = false;
+bool Movement::stepPan() {
+  if (currentDistanceSteps.x == 0)
+    return false;
+
+  if (currentDistanceSteps.x > 0) {
+    digitalWrite(Pins::DIRECTION, HIGH);
+    currentDistanceSteps.x--;
+    currentSteps.x++;
+  } else {
+    digitalWrite(Pins::DIRECTION, LOW);
+    currentDistanceSteps.x++;
+    currentSteps.x--;
+  }
+
+  digitalWrite(Pins::PAN_STEP, HIGH);
+  digitalWrite(Pins::PAN_STEP, LOW);
+
+  return true;
+}
+
+bool Movement::stepTilt() {
+  if (currentDistanceSteps.y == 0)
+    return false;
+
+  if (currentDistanceSteps.y > 0) {
+    digitalWrite(Pins::DIRECTION, LOW);
+    currentDistanceSteps.y--;
+    currentSteps.y++;
+  } else {
+    digitalWrite(Pins::DIRECTION, HIGH);
+    currentDistanceSteps.y++;
+    currentSteps.y--;
+  }
+
+  digitalWrite(Pins::TILT_STEP, HIGH);
+  digitalWrite(Pins::TILT_STEP, LOW);
+  return true;
 }

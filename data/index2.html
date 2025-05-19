@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kontrola Reflektora LED</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+
+      .container {
+        width: 80%;
+        max-width: 800px;
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      #colorPicker {
+        width: 100%;
+        height: 40px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #fff;
+        cursor: pointer;
+      }
+
+      #colorPicker::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      #colorPicker::-webkit-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+
+      #colorPicker::-moz-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+
+      .panel {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #e9ecef;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: left;
+      }
+
+      .panelHeader {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      #status {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+        color: #555;
+        background-color: #fff;
+      }
+
+      .autoUpdating {
+        font-style: italic;
+        color: #999;
+      }
+
+      /* Media query for smaller screens to optimize display */
+      @media (max-width: 600px) {
+        .container {
+          width: 95%;
+          padding: 10px;
+        }
+
+        h1 {
+          font-size: 1.5em;
+        }
+
+        .panelHeader {
+          font-size: 1em;
+        }
+
+        label {
+          font-size: 0.9em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kontrola Reflektora LED</h1>
+    <div class="container">
+      <div class="panelHeader">Kontrola silników</div>
+      <div class="form-group">
+        <label for="ax">Oś X (0-90):</label>
+        <input type="range" id="ax" name="ax" min="0" max="90" value="0" />
+        <p id="axValue">0</p>
+      </div>
+      <div class="form-group">
+        <label for="ay">Oś Y (0-90):</label>
+        <input type="range" id="ay" name="ay" min="0" max="90" value="0" />
+        <p id="ayValue">0</p>
+      </div>
+
+      <div class="panelHeader">Wybór koloru</div>
+      <div class="form-group">
+        <label for="colorPicker">Wybierz kolor:</label>
+        <input type="color" id="colorPicker" name="colorPicker" value="#000000" />
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panelHeader">
+        Obecny status <span class="autoUpdating">(auto-aktualizacje)</span>
+      </div>
+      <div id="currentPosition">Pozycja silnika: AX = N/A, AY = N/A</div>
+      <div id="currentColor">Obecny kolor: N/A</div>
+      <div id="isMoving">W ruchu: N/A</div>
+    </div>
+
+    <div id="status"></div>
+
+    <script>
+      const API_BASE_URL = "";
+
+      let previousAx = 0;
+      let previousAy = 0;
+      let previousColor = "#000000";
+
+      function hexToRgb(hex) {
+        hex = hex.replace(
+          /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+          (m, r, g, b) => "#" + r + r + g + g + b + b
+        );
+
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+          ? {
+              r: parseInt(result[1], 16),
+              g: parseInt(result[2], 16),
+              b: parseInt(result[3], 16),
+            }
+          : null;
+      }
+
+      function sendUpdates() {
+        const ax = parseInt(document.getElementById("ax").value);
+        const ay = parseInt(document.getElementById("ay").value);
+        const colorPicker = document.getElementById("colorPicker");
+        const hexColor = colorPicker.value;
+        const rgbColor = hexToRgb(hexColor);
+
+        let updates = [];
+
+        if (ax !== previousAx || ay !== previousAy) {
+          previousAx = ax;
+          previousAy = ay;
+          updates.push(fetch(`${API_BASE_URL}/set/position?ax=${ax}&ay=${ay}`));
+          document.getElementById("status").innerText = "Position Sent!";
+        }
+
+        if (hexColor !== previousColor) {
+          if (rgbColor) {
+            previousColor = hexColor;
+            updates.push(
+              fetch(`${API_BASE_URL}/set/light?r=${rgbColor.r}&g=${rgbColor.g}&b=${rgbColor.b}`)
+            );
+            document.getElementById("status").innerText = "Color Sent!";
+          } else document.getElementById("status").innerText = "Can't parse color!";
+        }
+
+        Promise.all(updates)
+          .then(() => {})
+          .catch((error) => {
+            document.getElementById("status").innerText = "Send error!";
+          });
+      }
+
+      function updateStatusPanel() {
+        document.getElementById("axValue").innerText = previousAx;
+        document.getElementById("ayValue").innerText = previousAy;
+
+        fetch(`${API_BASE_URL}/get/position/current`)
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById(
+              "currentPosition"
+            ).innerText = `Motor Position: AX = ${data.ax}, AY = ${data.ay}`;
+          })
+          .catch((error) => {
+            document.getElementById("currentPosition").innerText =
+              "Motor Position: Error getting position";
+          });
+
+        fetch(`${API_BASE_URL}/get/ismoving`)
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("isMoving").innerText = `Moving Status: ${data.is_moving}`;
+          })
+          .catch((error) => {
+            document.getElementById("isMoving").innerText = "Moving Status: Error getting status";
+          });
+
+        document.getElementById("currentColor").innerText = "Current Color: " + previousColor;
+      }
+
+      setInterval(function () {
+        sendUpdates();
+        updateStatusPanel();
+      }, 1000);
+    </script>
+  </body>
+</html>

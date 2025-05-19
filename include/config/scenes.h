@@ -1,13 +1,18 @@
-#ifndef PREDEFINED_H
-#define PREDEFINED_H
+#include "config/animation.h"
 
-#include "api/sequence.h"
+using namespace Animation;
 
-extern Sequence *blinkWhite;
-extern Sequence *blinkYellow;
-extern Sequence *blinkBlue;
-extern Sequence *predefinedRedSeq;
-extern Sequence *predefinedGreenSeq;
-extern Sequence *customBlueSeq;
+#ifndef SCENES_H
+#define SCENES_H
+
+Animation::Timeline createStillAnimation(Color color, unsigned long duration);
+
+Animation::Timeline createBlinkAnimation(Color color, unsigned long upTime, unsigned long downTime, unsigned char times);
+
+Animation::Timeline createResetPositionAnimation();
+
+inline constexpr unsigned char scenesCount = 4;
+extern Animation::Timeline scenesTimelines[scenesCount];
+extern Color scenesColors[scenesCount];
 
 #endif  // PREDEFINED_H

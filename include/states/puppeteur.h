@@ -1,8 +1,9 @@
 #include <Arduino.h>
 
 #include "api/chooser.h"
-#include "api/sequence.h"
+#include "api/designer.h"
 #include "api/states.h"
+#include "api/theater.h"
 #include "config/scenes.h"
 #include "interfaces/controls.h"
 
@@ -10,21 +11,30 @@
 #define PUPPETEUR_STATE
 
 namespace PuppeteurState {
+
+static Chooser chooser = Chooser(5, 0);
+
 void setup() {
-  Serial.printf("Puppeteur setup\n");
+  Designer::attach(&scenesTimelines[scenesCount - 1]);
+  Designer::clearFrames();
 
-  Controls::unlockAnalog();
-  customBlueSeq->clear();  // Clear the sequence
-
+  Controls::clearCallbacks();
   Controls::onHold(0, []() {  // Add frame to sequence
-    customBlueSeq->add(Lights::getTargetColor(), Movement::getTargetAnglePosition());
-    auto f = customBlueSeq->getSize();
-    Serial.printf("Added frame %d to sequence\n", f);
-    blinkBlue->run();
-    if (f >= Sequence::maxFrames) StateManager::setState(1);
+    if (Designer::addFrame()) {
+      Serial.printf("Frame added: %d\n", scenesTimelines[scenesCount - 1].size);
+
+      Color color = Lights::getCurrentColor();
+      Theater::run(createBlinkAnimation(color, 200, 200, 1));
+      Theater::run(createStillAnimation(color, 0));
+    } else {
+      Serial.println("Max frames reached");
+      Designer::detach();
+      StateManager::setState(1);
+    }
   });
 
   Controls::onHold(1, []() {  // Go to monilith
+    Designer::detach();
     StateManager::setState(1);
   });
 
@@ -40,8 +50,8 @@ void setup() {
     Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
-  blinkBlue->run();
   Serial.printf("< %-9s >\n", "Puppeteur");
+  Theater::run(createBlinkAnimation({0, 0, 255}, 200, 200, 3));
 }
 
 void handle() {
@@ -50,19 +60,19 @@ void handle() {
   if (!Controls::tryUnlockAnalog()) {
     switch (chooser.current()) {
     case 0:
-      Movement::movePan(map(analog, 0, 255, -90, 90));
+      Movement::movePanToAngle(map(analog, 0, 255, -90, 90));
       break;
     case 1:
-      Movement::moveTilt(map(analog, 0, 255, -90, 90));
+      Movement::moveTiltToAngle(map(analog, 0, 255, -90, 90));
       break;
     case 2:
-      Lights::setRedTo(analog);
+      Lights::fadeRedTo(analog);
       break;
     case 3:
-      Lights::setGreen(analog);
+      Lights::fadeGreenTo(analog);
       break;
     case 4:
-      Lights::setBlue(analog);
+      Lights::fadeBlueTo(analog);
       break;
     }
   }

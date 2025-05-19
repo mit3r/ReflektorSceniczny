@@ -3,14 +3,14 @@
 
 class Chooser {
   private:
-  char count;
-  char curr;
-  char start;
+  unsigned char count;
+  unsigned char curr;
+  unsigned char start;
 
   public:
-  Chooser(char count, char start = 0);
+  Chooser(unsigned char count, unsigned char start = 0);
 
-  char current();
+  unsigned char current();
   void nextChoice();
   void previousChoice();
   void reset();

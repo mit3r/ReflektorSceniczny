@@ -39,6 +39,7 @@ class Controls {
 
   static void onPressed(int index, void (*callback)());
   static void onHold(int index, void (*callback)());
+  static void clearCallbacks();
 
   // Analog value mapped to [0, 255]
   static unsigned short getAnalog();

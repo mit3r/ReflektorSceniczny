@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 #include "api/chooser.h"
-#include "api/sequence.h"
 #include "api/states.h"
+#include "api/theater.h"
 #include "config/scenes.h"
 #include "interfaces/controls.h"
 #include "interfaces/lights.h"
@@ -12,13 +12,13 @@
 #define MONOLITH_STATE
 
 namespace MonolithState {
+
+Chooser chooser(5, 0);
+
 void setup() {
-  Controls::onHold(0, []() {
-    Serial.printf("Going to scene\n");
-    StateManager::setState(0);
-    Serial.printf("Scene state set\n");
-  });                                                        // Go to scene
-  Controls::onHold(1, []() { StateManager::setState(2); });  // Go to puppeteur
+  Controls::clearCallbacks();
+  Controls::onHold(0, []() { StateManager::setState(0); });
+  Controls::onHold(1, []() { StateManager::setState(2); });
 
   Controls::onPressed(0, []() {
     Controls::lockAnalog();
@@ -32,9 +32,8 @@ void setup() {
     Serial.printf("Adjusting parameter: %d\n", chooser.current());
   });
 
-  Movement::moveTo(0, 0, true);
-  blinkWhite->run();
   Serial.printf("< %-9s >\n", "Monolith");
+  Theater::run(createBlinkAnimation({100, 100, 100}, 100, 100, 3));
 }
 
 void handle() {
@@ -43,19 +42,19 @@ void handle() {
   if (!Controls::tryUnlockAnalog()) {
     switch (chooser.current()) {
     case 0:
-      Movement::movePan(map(analog, 0, 255, -90, 90));
+      Movement::movePanToAngle(map(analog, 0, 255, -90, 90));
       break;
     case 1:
-      Movement::moveTilt(map(analog, 0, 255, -90, 90));
+      Movement::moveTiltToAngle(map(analog, 0, 255, -90, 90));
       break;
     case 2:
-      Lights::setRedTo(map(analog, 0, 255, 0, 255));
+      Lights::fadeRedTo(analog);
       break;
     case 3:
-      Lights::setGreen(map(analog, 0, 255, 0, 255));
+      Lights::fadeGreenTo(analog);
       break;
     case 4:
-      Lights::setBlue(map(analog, 0, 255, 0, 255));
+      Lights::fadeBlueTo(analog);
       break;
     }
   }

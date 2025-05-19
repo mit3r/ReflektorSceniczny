@@ -2,6 +2,7 @@
 #include <Ticker.h>
 
 #include "config/pinout.h"
+#include "interfaces/movement.h"
 #include "utils.h"
 
 #ifndef LIGHTS_H
@@ -10,22 +11,21 @@
 class Lights {
   public:
   static void setup();
-
-  // Handle the fading animation
-  // This function should be called in the main loop
   static void handle();
 
   // Fade to a target color over a specified delay
   // @param _color: target color
   // @param _delay: delay in milliseconds (default is 0)
-  static void fadeTo(Color _color, unsigned long _delay = 0);
+  static bool fadeColorTo(Color color, unsigned long duration = 0);
 
-  static void setRedTo(unsigned char _red);
+  static bool fadeRedTo(unsigned char red, unsigned long duration = 1);
+  static bool fadeGreenTo(unsigned char green, unsigned long duration = 1);
+  static bool fadeBlueTo(unsigned char blue, unsigned long duration = 1);
 
-  static void setGreen(unsigned char _green);
+  static const bool isFading();
+  static void stop();
 
-  static void setBlue(unsigned char _blue);
-
+  static const Color getCurrentColor();
   static const Color getTargetColor();
 };
 

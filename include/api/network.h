@@ -17,6 +17,7 @@ class Network {
 
   public:
   static void setup();
+  static void begin();
 };
 
 #endif

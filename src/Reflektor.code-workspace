@@ -3,5 +3,26 @@
     {
       "path": ".."
     }
-  ]
+  ],
+  "settings": {
+    "files.associations": {
+      ".clang-format": "yaml",
+      "*.css": "tailwindcss",
+      "thread": "cpp",
+      "istream": "cpp",
+      "ostream": "cpp",
+      "stop_token": "cpp",
+      "typeinfo": "cpp",
+      "array": "cpp",
+      "deque": "cpp",
+      "list": "cpp",
+      "string": "cpp",
+      "unordered_map": "cpp",
+      "vector": "cpp",
+      "string_view": "cpp",
+      "initializer_list": "cpp",
+      "ranges": "cpp",
+      "regex": "cpp"
+    }
+  }
 }

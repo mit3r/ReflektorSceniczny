@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "api/sequence.h"
 #include "api/states.h"
+#include "api/theater.h"
 #include "config/scenes.h"
 #include "interfaces/controls.h"
 
@@ -10,62 +10,57 @@
 
 namespace SceneState {
 
-struct Item {
-  Color identifier;
-  Sequence *sequence;
-};
-
 static bool looping = false;
-static unsigned char choose = 0;
-static const unsigned char length = 3;
-
-static Item items[length] = {
-    {Color{255, 0, 0}, predefinedRedSeq},    // Red
-    {Color{0, 255, 0}, predefinedGreenSeq},  // Green
-    {Color{0, 0, 255}, customBlueSeq},       // Blue
-};
+static Chooser chooser = Chooser(scenesCount, 0);
 
 void setup() {
+  Controls::clearCallbacks();
   Controls::onHold(0, []() {
     StateManager::setState(1);
   });
 
   Controls::onHold(1, []() {
-    if (Sequence::isRunning()) {
+    if (Theater::isAnimating()) {
       looping = false;
-      Sequence::stop();
-      Serial.printf("Stopping scene: %d\n", choose);
+      Theater::skip();
+
+      Theater::run(createResetPositionAnimation());
+      Theater::run(createStillAnimation(scenesColors[chooser.current()], 1));
+      Serial.printf("Stopped %d.\n", chooser.current());
     } else {
       looping = true;
-      items[choose].sequence->run();
-      Serial.printf("Running scene: %d\n", choose);
+
+      Theater::run(scenesTimelines[chooser.current()]);
+      Serial.printf("Running %d...\n", chooser.current());
     }
   });
 
   Controls::onPressed(0, []() {
-    choose = choose - 1 < 0 ? length - 1 : choose - 1;
-    Serial.printf("Selected scene: %d\n", choose);
+    chooser.previousChoice();
+
+    Theater::run(createResetPositionAnimation());
+    Theater::run(createStillAnimation(scenesColors[chooser.current()], 1));
+    Serial.printf("Selected scene: %d\n", chooser.current());
   });
 
   Controls::onPressed(1, []() {
-    choose = choose + 1 > length - 1 ? 0 : choose + 1;
-    Serial.printf("Selected scene: %d\n", choose);
+    chooser.nextChoice();
+
+    Theater::run(createResetPositionAnimation());
+    Theater::run(createStillAnimation(scenesColors[chooser.current()], 1));
+    Serial.printf("Selected scene: %d\n", chooser.current());
   });
 
-  blinkYellow->run();
   Serial.printf("< %-9s >\n", "Scene");
-  Lights::fadeTo(items[choose].identifier, 0);
+  Theater::run(createResetPositionAnimation());
+  Theater::run(createBlinkAnimation({255, 255, 0}, 100, 100, 3));
+
+  Serial.printf("Selected scene: %d\n", chooser.current());
+  Theater::run(createStillAnimation(scenesColors[chooser.current()], 1));
 }
 
 void handle() {
-  if (!Sequence::isRunning()) {
-    if (looping)
-      items[choose].sequence->run();
-
-    Lights::fadeTo(items[choose].identifier, 0);
-    Movement::moveTo(0, 0);
-  }
-  // Handle the sequence state
+  if (looping && !Theater::isAnimating()) Theater::run(scenesTimelines[chooser.current()]);
 }
 
 void cleanup() {}

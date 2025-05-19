@@ -8,7 +8,7 @@ static Button buttons[2] = {
     {Pins::BUTTON1, 0, 250, false, false, nullptr, nullptr},
 };
 
-static Analog analog = {Pins::ANALOG, 0, 0, 0, 0, 1023};
+static Analog analog = {Pins::ANALOG, 0, 0, 0, 10, 1024};
 bool Controls::analogLock = false;  // Flag for analog lock
 
 void Controls::setup() {
@@ -54,6 +54,13 @@ void Controls::onPressed(int index, void (*callback)()) {
 
 void Controls::onHold(int index, void (*callback)()) {
   buttons[index].callbackHold = callback;
+}
+
+void Controls::clearCallbacks() {
+  for (auto &btn : buttons) {
+    btn.callbackPress = nullptr;
+    btn.callbackHold = nullptr;
+  }
 }
 
 unsigned short Controls::getAnalog() { return analog.value; }
